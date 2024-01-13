@@ -1,0 +1,4 @@
+vos parties : 
+Partie N°1, 85 trouvé en 5 coup(s)
+Partie N°2, 2 trouvé en 6 coup(s)
+Partie N°3, N/A
