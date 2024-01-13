@@ -1,3 +1,6 @@
+/Info/bin/
+/Info/obj/
+/JeuPoM/Visual Studio 2022/
 /GestionRH/GestionRH/App.config
 /GestionRH/GestionRH/bin/Debug/ClassLibrary1.dll
 /GestionRH/GestionRH/bin/Debug/ClassLibrary1.pdb
@@ -12,18 +15,7 @@
 /GestionRH/GestionRH/obj/Debug/GestionRH.csproj.FileListAbsolute.txt
 /GestionRH/GestionRH/obj/Debug/GestionRH.exe
 /GestionRH/GestionRH/obj/Debug/GestionRH.pdb
-/Info/bin/Debug/ClassLibrary1.dll
-/Info/bin/Debug/ClassLibrary1.pdb
 /Info/Info.csproj
-/Info/obj/Debug/ClassLibrary1.csproj.AssemblyReference.cache
-/Info/obj/Debug/ClassLibrary1.csproj.CoreCompileInputs.cache
-/Info/obj/Debug/ClassLibrary1.csproj.FileListAbsolute.txt
-/Info/obj/Debug/ClassLibrary1.dll
-/Info/obj/Debug/ClassLibrary1.pdb
-/Info/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
-/Info/obj/Debug/Info.csproj.AssemblyReference.cache
-/Info/obj/Debug/Info.csproj.CoreCompileInputs.cache
-/Info/obj/Debug/Info.csproj.FileListAbsolute.txt
 /JeuPoM/.vs/JeuPoM/DesignTimeBuild/.dtbcache.v2
 /JeuPoM/.vs/JeuPoM/FileContentIndex/0abba27f-b0b8-4d9a-a901-c55e7c8543aa.vsidx
 /JeuPoM/.vs/JeuPoM/FileContentIndex/1f9df1ec-2fd9-42f5-9c75-e7117ad61d73.vsidx
@@ -55,4 +47,3 @@
 /JeuPoM/obj/Debug/JeuPoM.csproj.FileListAbsolute.txt
 /JeuPoM/obj/Debug/JeuPoM.exe
 /JeuPoM/obj/Debug/JeuPoM.pdb
-/JeuPoM/Visual Studio 2022/Visualizers/attribcache140.bin
