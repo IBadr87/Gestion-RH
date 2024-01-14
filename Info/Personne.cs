@@ -14,7 +14,7 @@ namespace Info
 
 
         #region Constructeurs
-        public Personne() : this("Do", "John", "", 0) { }
+        public Personne() : this("Badr", "Ibrahim", "", 0) { }
 
         public Personne(string nom, string prenom) : this(nom, prenom, "", 0) { }
 
@@ -28,16 +28,16 @@ namespace Info
         #endregion
 
 
-        #region Méthodes
+        #region Methodes
         public virtual string getInfo()
         {
             if (age != 0 && !adresse.Equals(""))
             {
-                return nom + " " + prenom + ", " + " habite a " + adresse + ", " + age + " ans ";
+                return this.nom + " " + this.prenom + ", " + " habite a " + this.adresse + ", " + this.age + " ans ";
             }
             else
             {
-                return nom + " " + prenom + ", aucune autre information disponible";
+                return this.nom + " " + this.prenom + ", aucune autre information disponible";
             }
         }
     }

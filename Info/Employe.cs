@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Info
 {
-    public class Employe : Personne
+    public class Employe : Personne, IDisposable
     {
         #region Attributs
         private int numero;
@@ -16,8 +17,7 @@ namespace Info
 
 
         #region Constructeurs
-        public Employe(string nom, string prenom, string adresse, int age, string fonction,
-            double salaire) : base(nom, prenom, adresse, age)
+        public Employe(string nom, string prenom, string adresse, int age, string fonction, double salaire) : base(nom, prenom, adresse, age)
         {
             this.fonction = fonction;
             this.salaire = salaire;
@@ -27,7 +27,7 @@ namespace Info
         #endregion
 
 
-        #region Méthodes
+        #region Methodes
 
         public override string getInfo()
         {
@@ -42,6 +42,41 @@ namespace Info
         public void affectation(string nouvelle_fonction)
         {
             this.fonction = nouvelle_fonction;
+        }
+
+        internal void setNumero(int matricule)
+        {
+            this.numero = matricule;
+        }
+        #endregion
+
+
+        #region Dispose 
+
+        private bool isDisposed = false;
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            if (!isDisposed)
+            {
+                if (isDisposing)
+                {
+                    fonction = null;
+                }
+
+                isDisposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~Employe()
+        {
+            Dispose(false);
         }
         #endregion
     }
