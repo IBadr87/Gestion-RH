@@ -10,7 +10,7 @@ namespace Info
     public class Employe : Personne, IDisposable
     {
         #region Attributs
-        private int numero;
+        public int numero;
         private double salaire;
         public string fonction;
         #endregion
@@ -28,10 +28,9 @@ namespace Info
 
 
         #region Methodes
-
         public override string getInfo()
         {
-                return base.getInfo() + this.fonction + this.salaire;
+                return base.getInfo() + ", " + this.fonction + ", " + this.salaire;
         }
 
         public void augmentation(double montant)
@@ -44,15 +43,23 @@ namespace Info
             this.fonction = nouvelle_fonction;
         }
 
-        internal void setNumero(int matricule)
+        public void setNumero(int matricule)
         {
             this.numero = matricule;
         }
         #endregion
 
+        #region Propriétés
+        internal double Salaire
+        {
+            get
+            {
+                return salaire;
+            }
+        }
+        #endregion
 
         #region Dispose 
-
         private bool isDisposed = false;
 
         protected virtual void Dispose(bool isDisposing)

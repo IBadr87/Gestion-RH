@@ -14,7 +14,7 @@ namespace Info
 
 
         #region Constructeurs
-        public Personne() : this("Badr", "Ibrahim", "", 0) { }
+        public Personne() : this("Badr", "Ibrahim", "Lyon", 36) { }
 
         public Personne(string nom, string prenom) : this(nom, prenom, "", 0) { }
 
@@ -33,7 +33,7 @@ namespace Info
         {
             if (age != 0 && !adresse.Equals(""))
             {
-                return this.nom + " " + this.prenom + ", " + " habite a " + this.adresse + ", " + this.age + " ans ";
+                return this.nom + " " + this.prenom + ", " + "habite a " + this.adresse + ", " + this.age + " ans";
             }
             else
             {
