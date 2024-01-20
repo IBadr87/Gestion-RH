@@ -10,7 +10,7 @@ namespace Info
     public class Employe : Personne, IDisposable
     {
         #region Attributs
-        public int numero;
+        private int numero;
         private double salaire;
         public string fonction;
         #endregion
@@ -43,20 +43,20 @@ namespace Info
             this.fonction = nouvelle_fonction;
         }
 
-        public void setNumero(int matricule)
+        public int setNumero(int matricule)
         {
-            this.numero = matricule;
+            return this.numero = matricule;
         }
         #endregion
 
         #region Propriétés
-        internal double Salaire
+
+        public double Salaire
         {
-            get
-            {
-                return salaire;
-            }
+            get { return salaire; }
+            set { salaire = value; }
         }
+
         #endregion
 
         #region Dispose 

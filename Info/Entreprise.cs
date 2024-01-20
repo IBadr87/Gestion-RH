@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,16 +12,13 @@ namespace Info
     public class Entreprise : IDisposable
     {
         #region Attributs
-        
         public int effectif;
         public string nom;
-        public Employe [] employes;
-
+        private Employe [] employes;
         #endregion
 
 
         #region Constructeurs
-
         public Entreprise(string nom)
         {
             this.nom = nom;
@@ -27,12 +27,10 @@ namespace Info
         }
 
         public Entreprise() : this("") { }
-
         #endregion
 
 
         #region Methodes
-
         static string getString(string message)
         {
             Console.WriteLine(message);
@@ -108,18 +106,21 @@ namespace Info
         // TODO :  Exercice 1.1 (Liste des employés)
         public void DisplayEmployeeList()
         {
-            Console.WriteLine($"List of Employes : ");
+            Console.WriteLine($"Employes List: ");
 
             if (effectif == 0)
             {
-                Console.WriteLine("No employes in the company.");
+                Console.WriteLine("Aucun employé n'est présent dans l'entreprise.");
             }
             else
             {
                 for (int i = 0; i < effectif; i++)
                 {
                     Employe emp = employes[i];
-                    Console.WriteLine(emp.getInfo());
+                    if (emp != null) 
+                    {
+                        Console.WriteLine($"matricule N{emp.setNumero(i + 1)} : {emp.getInfo()}");
+                    }
                 }
             }
         }
@@ -130,35 +131,144 @@ namespace Info
             int numero = getInt("\nVeuillez saisir le numéro de l'employé à récupérer : ");
             Employe emp = null;
 
-            foreach (Employe employe in employes)
+            for (int i = 0; i < effectif; i++)
             {
-                if (employe != null && employe.numero == numero)
+                if (employes[i] != null && employes[i].setNumero(i + 1) == numero)
                 {
-                    emp = employe;
-                    Console.WriteLine(employe.getInfo());
+                    emp = employes[i];
+                    Console.WriteLine($"matricule N {numero}: " + emp.getInfo());
                     break;
+                }
+            }
+
+            if (emp == null)
+            {
+                Console.WriteLine($"\nAucun employé trouvé avec le numéro {numero}. Retour au Menu Principal.");
+            }
+        }
+
+        public bool DeleteEmployee()
+        {
+            int matricule = getInt("Enter the matricule of the employee to delete: ");
+            Employe emp = null;
+            int indexToDelete = -1;
+
+            for (int i = 0; i < effectif; i++)
+            {
+                if (employes[i] != null && employes[i].setNumero(i + 1) == matricule)
+                {
+                    emp = employes[i];
+                    indexToDelete = i;
+                    Console.WriteLine($"Matricule N : {matricule}: " + emp.getInfo());
+                    break;
+                }
+            }
+
+            if (emp != null)
+            {
+                for (int i = indexToDelete; i < effectif - 1; i++)
+                {
+                    employes[i] = employes[i + 1];
+                }
+                employes[effectif - 1] = null;
+
+                effectif--;
+
+                Console.WriteLine($"Employee with matricule N : {matricule} has been deleted.");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"No employee found with matricule N : {matricule}. Returning to the main menu.");
+                return false;
+            }
+        }
+
+
+        public void ModifyEmployeeInfo()
+        {
+            int matricule = getInt("Veuillez saisir le matricule N de votre employee: ");
+            Employe emp = null;
+
+            for (int i = 0; i < effectif; i++)
+            {
+                if (employes[i] != null && employes[i].setNumero(i + 1) == matricule)
+                {
+                    emp = employes[i];
+                    Console.WriteLine($"Matricule N : {matricule}: " + emp.getInfo());
+
+                    emp.adresse = getString("Veuillez saisir la nouvelle adresse: ");
+                    emp.fonction = getString("Veuillez saisir la nouvelle function: ");
+                    emp.Salaire = getInt("EVeuillez saisir le nouveau salaire: ");
+                    Console.WriteLine("La mise à jour de l'information de votre employé a été effectuée avec succès.");
+                    break;
+                }
+            }
+
+            if (emp == null)
+            {
+                Console.WriteLine($"Aucun matricule N: {matricule} trouver.");
+            }
+        }
+
+        public void SaveEmployeeInfoToFile()
+        {
+            using (StreamWriter writer = new StreamWriter($"C:/Projets/VS/2022/Exercises/Module_11/data.txt", true))
+            {
+                int currentEmployeeNumber = 1;
+
+                foreach (Employe emp in employes)
+                {
+                    if (emp != null)
+                    {
+                        emp.setNumero(currentEmployeeNumber);
+
+                        string employeeInfo = $"Matricule N : {emp.setNumero(currentEmployeeNumber)} : {emp.nom}, {emp.prenom}, {emp.adresse}, {emp.age}, {emp.fonction}, {emp.Salaire}";
+                        writer.WriteLine(employeeInfo);
+
+                        currentEmployeeNumber++;
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region Propriétés
+        public Employe this[int index]
+        {
+            get
+            {
+                if (index >= 0 && index <= this.effectif)
+                {
+                    return this.employes[index];
+                }
+                return null;
+            }
+            set
+            {
+                if (index >= 0 && index <= this.effectif)
+                {
+                    this.employes[index] = value;
                 }
                 else
                 {
-                    Console.WriteLine("\nAucun employé trouvé avec le numéro spécifié. Retour au Menu Principal.");
+                    throw new IndexOutOfRangeException("Indice en dehors des limites du tableau employes.");
                 }
             }
         }
 
-        #endregion
-
-        #region Propriétés
         // TODO :  Exercice 1.4 (Calculer les salaires)
         public double ChargeSalariale
         {
             get
             {
                 double totalSalaire = 0;
-                foreach (Employe employe in employes)
+                for (int i = 0; i < this.effectif; i++)
                 {
+                    Employe employe = this[i];
                     if (employe != null)
                     {
-                        totalSalaire += employe.Salaire;
+                        totalSalaire += this.employes[i].Salaire;
                     }
                 }
                 return totalSalaire;
@@ -169,14 +279,13 @@ namespace Info
         {
             Console.WriteLine($"Nombre d'employés : {effectif}");
             Console.WriteLine($"Charge salariale : {ChargeSalariale}");
-            Console.WriteLine($"Salaire moyen (arrondi) : {Convert.ToInt32(ChargeSalariale/2)}");
+            Console.WriteLine($"Salaire moyen (arrondi) : {Convert.ToInt32(ChargeSalariale/this.effectif)}");
         }
         #endregion
 
         #region Dispose 
-
         private bool isDisposed = false;
-
+        
         protected virtual void Dispose(bool isDisposing)
         {
             if (!isDisposed)
