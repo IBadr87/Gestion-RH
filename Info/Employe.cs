@@ -43,20 +43,29 @@ namespace Info
             this.fonction = nouvelle_fonction;
         }
 
-        public int setNumero(int matricule)
+        public void affectation(string nouvelle_fonction, Action<String> methode)
         {
-            return this.numero = matricule;
+            methode(this.nom + " " + this.prenom + ", " + this.fonction + ": devient " + nouvelle_fonction);
+            this.fonction = nouvelle_fonction;
+        }
+
+        public int setNumero(int matricule_N)
+        {
+            return this.numero += matricule_N;
+        }
+
+        public int getNumero()
+        {
+            return numero;
         }
         #endregion
 
         #region Propriétés
-
         public double Salaire
         {
             get { return salaire; }
             set { salaire = value; }
         }
-
         #endregion
 
         #region Dispose 
