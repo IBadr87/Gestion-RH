@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,39 +14,36 @@ namespace Info
     public class Entreprise : IDisposable
     {
         #region Attributs
-
         public int effectif;
-        public string nom;
+        public string nomEnt;
         private Employe[] employes;
-
+        public event Action<Object, EntEventArgs> InfoEffectif = null;
+        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_11/Ex_2/data.txt";
         #endregion
 
 
         #region Constructeurs
-
-        public Entreprise(string nom)
+        public Entreprise(string nomEnt)
         {
-            this.nom = nom;
-            this.effectif = 0;
+            this.nomEnt = nomEnt;
             employes = new Employe [100];
+            this.effectif = 0;
         }
 
-        public Entreprise() : this("")
+        public Entreprise() : this("Conduent")
         {
         }
-
         #endregion
 
 
         #region Methodes
-
-        static string getString(string message)
+        public static string getString(string message)
         {
             Console.WriteLine(message);
             return Console.ReadLine();
         }
 
-        static int getInt(string message)
+        public static int getInt(string message)
         {
             Console.WriteLine(message);
             string input = Console.ReadLine();
@@ -61,55 +59,81 @@ namespace Info
             }
         }
 
-        public void embauche(Employe e)
+        public void LoadData()
         {
-            string filePath = "C:/Projets/VS/2022/Exercises/Module_11/data.txt";
-
-            int lastEmployeeNumber = 0;
-
             if (File.Exists(filePath))
             {
-                string[] lines = File.ReadAllLines(filePath);
+                StreamReader sr = new StreamReader(filePath);
+                string ligne = "";
 
-                foreach (string line in lines)
+                while ((ligne = sr.ReadLine()) != null)
                 {
-                    Match match = Regex.Match(line, @"Matricule_N(\d+):");
+                    string[] data = ligne.Split(new[] { ':', ',' });
 
-                    if (match.Success)
+                    if (data.Length >= 5)
                     {
-                        int number = int.Parse(match.Groups[1].Value);
+                        string[] nameParts = data[1].Trim().Split(' ');
+                        string nom = nameParts[0];
+                        string prenom = nameParts[1];
 
-                        if (number > lastEmployeeNumber)
-                        {
-                            lastEmployeeNumber = number;
-                        }
+                        embauche(new Employe(int.Parse(data[0]), nom, prenom, data[2], int.Parse(data[3]), data[4], double.Parse(data[5])));
                     }
                 }
-            }
 
-            if (this.effectif >= employes.Length)
+                sr.Close();
+            }
+            else
+            {
+                Console.WriteLine("Le fichier de données n'existe pas.");
+            }
+        }
+
+        public void embauche(Employe emp)
+        {
+            if (this.effectif < employes.Length)
+            {
+                employes[this.effectif] = emp;
+                this.effectif++;
+            }
+            else
             {
                 throw new Exception("Le nombre maximal d'employés est atteint. Impossible d'embaucher plus d'employés.");
             }
 
-            int newEmployeeNumber = lastEmployeeNumber + 1;
+            // TODO : Exercice 2.1 (Création d’un événement)
+            int nbPosteRestant = employes.Length - this.effectif;
+            if (InfoEffectif != null)
+            {
+                EntEventArgs eventArgs = new EntEventArgs(nbPosteRestant);
+                InfoEffectif(this, eventArgs);
+            }
 
-            employes[this.effectif] = e;
-            e.setNumero(newEmployeeNumber);  
+            // TODO : Exercice 2.2 (Gestion de l’événement)
+            //InfoEffectif += new Action<Object, EntEventArgs>((o, e) => Console.WriteLine(e.posteRestant));
+        }
 
-            Console.WriteLine($"\nNouvel employé embauché, Matricule_N{e.getNumero()}: {e.nom} {e.prenom}");
-
+        public void writeDataFile(Employe emp)
+        {
             using (StreamWriter writer = new StreamWriter(filePath, true))
             {
-                string employeeInfo = $"Matricule_N{e.getNumero()}: {e.nom} {e.prenom}, {e.adresse}, {e.age}, {e.fonction}, {e.Salaire}";
+                string employeeInfo = $"{emp.Numero}: {emp.Nom} {emp.Prenom}, {emp.Adresse}, {emp.Age}, {emp.Fonction}, {emp.Salaire}";
                 writer.WriteLine(employeeInfo);
             }
         }
 
-
         // TODO : Exercice 1.2 (Recrutement d’un nouvel employé)
         public void AddNewEmploye()
         {
+            int newNumero = 0;
+
+            for (int i = 0; i < employes.Length; i++)
+            {
+                if (employes[i] != null && employes[i].Numero > newNumero)
+                {
+                    newNumero = employes[i].Numero;
+                }
+            }
+
             string nom = getString("Bonjour,\n\nVeuillez saisir le nom du nouvel employe: ");
             string prenom = getString("\nVeuillez saisir le prénom du nouvel employe: ");
             string adresse = getString("\nVeuillez saisir l'adresse du nouvel employe: ");
@@ -118,227 +142,222 @@ namespace Info
             int age = getInt("\nVeuillez saisir l'âge du nouvel employe: ");
             int salaire = getInt("\nVeuillez saisir le salaire du nouvel employe: ");
 
-            Employe recrue = new Employe(nom, prenom, adresse, age, fonction, (double)salaire);
-
-            embauche(recrue);
+            Employe emp = new Employe(newNumero + 1, nom, prenom, adresse, age, fonction, salaire);
+            embauche(emp);
+            Console.WriteLine($"\nNouvel employé embauché, Matricule_N{emp.Numero}: {emp.Nom} {emp.Prenom}");
+            writeDataFile(emp);
         }
 
         // TODO : Exercice 1.3 (Récupération d’un employé existant)
         public void EmployeExiste()
         {
-            int matricule_N = getInt("\nVeuillez saisir le matricule_N de l'employé à récupérer : ");
-
-            string filePath = "C:/Projets/VS/2022/Exercises/Module_11/data.txt";
-
-            if (File.Exists(filePath))
-            {
-                string[] lines = File.ReadAllLines(filePath);
-
-                bool matchFound = false;
-
-                foreach (string line in lines)
-                {
-                    Match match = Regex.Match(line, @"Matricule_N(\d+):");
-
-                    if (match.Success)
-                    {
-                        int employeeMatricule = int.Parse(match.Groups[1].Value);
-
-                        if (employeeMatricule == matricule_N)
-                        {
-                            string employeeInfo = line.Substring(match.Index + match.Length).Trim();
-
-                            Console.WriteLine(employeeInfo);
-                            matchFound = true;
-                        }
-                    }
-                }
-                if (!matchFound)
-                {
-                    Console.WriteLine("Aucun employé trouvé avec le matricule spécifié.");
-                }
-            }
-        }
-
-        public void DeleteEmployee(int matriculeToDelete)
-        {
-            string filePath = "C:/Projets/VS/2022/Exercises/Module_11/data.txt";
-
-            string[] lines = File.ReadAllLines(filePath);
-
-            List<string> updatedLines = new List<string>();
+            string searchName = getString("Veuillez saisir le nom de l'employé à rechercher: ").ToLower();
 
             bool found = false;
-            foreach (string line in lines)
-            {
-                string[] data = line.Split(new[] { ':', ',' });
 
-                if (data.Length >= 6)
+            for (int i = 0; i < effectif; i++)
+            {
+                Employe emp = employes[i];
+
+                if (emp != null && emp.Nom.ToLower() == searchName)
                 {
-                    if (int.TryParse(data[0].Trim().Substring(11), out int matricule))
-                    {
-                        if (matricule == matriculeToDelete)
-                        {
-                            found = true;
-                            Console.WriteLine($"Employe avec Matricule_N{matriculeToDelete} a été supprimé.");
-                        }
-                        else
-                        {
-                            updatedLines.Add(line);
-                        }
-                    }
+                    Console.WriteLine($"Employé trouvé, Matricule_N{emp.Numero}: {emp.getInfo()}");
+                    found = true;
                 }
             }
 
             if (!found)
             {
-                Console.WriteLine($"Aucun employé trouvé avec Matricule_N{matriculeToDelete}.");
+                Console.WriteLine($"Aucun employé trouvé avec le nom '{searchName}'.");
+            }
+        }
+
+        private void deleteDataFile(int matricule, List<Employe> allEmployees)
+        {
+            // Read the existing file contents into a list of lines
+            List<string> lines = File.ReadAllLines(filePath).ToList();
+
+            // Find the index of the line to be deleted
+            int indexToDelete = -1;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string[] data = lines[i].Split(':');
+                if (int.Parse(data[0]) == matricule)
+                {
+                    indexToDelete = i;
+                    break; // Found the line to delete, exit the loop
+                }
+            }
+
+            // Remove the line if it was found
+            if (indexToDelete >= 0)
+            {
+                lines.RemoveAt(indexToDelete);
+            }
+
+            // Rewrite the modified lines to the file
+            File.WriteAllLines(filePath, lines.ToArray());
+
+            Console.WriteLine($"Les données de l'employé matricule_N{matricule} ont été supprimées.");
+        }
+
+
+        public void DeleteEmployee(int matricule)
+        {
+            matricule = getInt("Veuillez saisir le matricule numero de l'employé à supprimer: ");
+
+            int indexToDelete = -1;
+
+            // Find the index of the employee with the specified matricule
+            for (int i = 0; i < effectif; i++)
+            {
+                if (employes[i] != null && employes[i].Numero == matricule)
+                {
+                    indexToDelete = i;
+                    break; // Found the employee, exit the loop
+                }
+            }
+
+            if (indexToDelete >= 0)
+            {
+                // Shift the elements in the array to remove the employee
+                for (int i = indexToDelete; i < effectif - 1; i++)
+                {
+                    employes[i] = employes[i + 1];
+                }
+
+                // Set the last element to null to clear the reference
+                employes[effectif - 1] = null;
+
+                // Decrease the employee count
+                effectif--;
+
+                // Call the method to delete data from the file
+                deleteDataFile(matricule, new List<Employe>());
             }
             else
             {
-                File.WriteAllLines(filePath, updatedLines);
+                Console.WriteLine($"Aucun employe trouve avec le Matricule_N{matricule}.");
             }
+        }
+
+
+        public void ModifyDataFile(Employe emp)
+        {
+            // Read the existing file contents into a list of lines
+            List<string> lines = File.ReadAllLines(filePath).ToList();
+
+            // Find the index of the line to be modified
+            int indexToModify = -1;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string[] data = lines[i].Split(':');
+                if (int.Parse(data[0]) == emp.Numero)
+                {
+                    indexToModify = i;
+                    break; // Found the line to modify, exit the loop
+                }
+            }
+
+            // Modify the line if it was found
+            if (indexToModify >= 0)
+            {
+                lines[indexToModify] = $"{emp.Numero}: {emp.Nom} {emp.Prenom}, {emp.Adresse}, {emp.Age}, {emp.Fonction}, {emp.Salaire}";
+            }
+
+            // Rewrite the modified lines to the file
+            File.WriteAllLines(filePath, lines.ToArray());
         }
 
         public void ModifyEmployeeInfo()
         {
-            string filePath = "C:/Projets/VS/2022/Exercises/Module_11/data.txt";
+            string searchName = getString("Veuillez saisir le nom de l'employé: ").ToLower();
 
-            bool continueModifying = true;
+            bool found = false;
 
-            while (continueModifying)
+            for (int i = 0; i < effectif; i++)
             {
-                string[] lines = File.ReadAllLines(filePath);
+                Employe emp = employes[i];
 
-                Console.Write("Saisiez le matricule_N de l’employé pour modifier: ");
-                if (int.TryParse(Console.ReadLine(), out int matriculeToModify))
+                if (emp != null && emp.Nom.ToLower() == searchName)
                 {
-                    bool found = false;
+                    found = true;
 
-                    for (int i = 0; i < lines.Length; i++)
+                    Console.WriteLine($"Employé avec le nom {searchName} trouvé et prêt à être modifié.");
+
+                    int choice;
+
+                    do
                     {
-                        string line = lines[i];
+                        Console.WriteLine("\nSélectionnez ce que vous souhaitez faire:");
+                        Console.WriteLine("1. Change Address.");
+                        Console.WriteLine("2. Change Fonction.");
+                        Console.WriteLine("3. Augmentation Salaire.");
+                        Console.WriteLine("4. Arrêter.\n");
 
-                        string[] data = line.Split(new[] { ':', ',' });
-
-                        if (data.Length >= 6)
+                        if (int.TryParse(Console.ReadLine(), out choice))
                         {
-                            if (int.TryParse(data[0].Trim().Substring(11), out int matricule))
+                            switch (choice)
                             {
-                                if (matricule == matriculeToModify)
-                                {
-                                    found = true;
-                                    Console.WriteLine($"Employé avec Matricule_N{matriculeToModify} trouvé et prêt à être modifié.");
+                                case 1:
+                                    string newAddress = getString("\nSaisissez la nouvelle adresse: ");
+                                    emp.Adresse = newAddress;
+                                    Console.WriteLine($"L'address de l'employe a été changé.\n");
+                                    break;
 
-                                    Console.WriteLine("\nSélectionnez ce que vous souhaitez faire: \n");
-                                    Console.WriteLine("1. Change Address");
-                                    Console.WriteLine("2. Change Fonction");
-                                    Console.WriteLine("3. Augmentation Salaire");
-                                    Console.WriteLine("4. Arrêter sans apporter de changements \n");
+                                case 2:
+                                    string nouvelle_fonction = getString("Faites l'affectation: ");
+                                    emp.affectation(nouvelle_fonction,x => Console.WriteLine(x.ToUpper()));
+                                    break;
 
-                                    if (int.TryParse(Console.ReadLine(), out int choice))
-                                    {
-                                        switch (choice)
-                                        {
-                                            case 1:
-                                                string newAddress = getString("Saisissez la nouvelle adresse : ");
-                                                data[2] = newAddress;
-                                                lines[i] =
-                                                    $"Matricule_N{matricule}:{data[1]}, {data[2]},{data[3]},{data[4]},{data[5]}";
-                                                Console.WriteLine($"L'adresse de l'employé a été mise à jour.");
-                                                break;
+                                case 3:
+                                    double salaryIncrease = double.Parse(getString("Saisissez le montant de l'augmentation: "));
+                                    emp.augmentation(salaryIncrease);
+                                    Console.WriteLine($"Le salaire de l'employe a été augmenté.\n");
+                                    break;
 
-                                            case 2:
-                                                string nouvelle_fonction = getString("Faites l'affectation: ");
+                                case 4:
+                                    Console.WriteLine("Arrêter.");
+                                    break;
 
-                                                Employe employee = new Employe("John", "Doe", "Suiss", 30, "Manager",
-                                                    500);
-                                                employee.nom = data[1];
-                                                employee.prenom = data[2];
-                                                employee.fonction = data[4];
-
-                                                employee.affectation(nouvelle_fonction,
-                                                    x => Console.WriteLine(x.ToUpper()));
-
-                                                lines[i] =
-                                                    $"Matricule_N{matricule}:{data[1]},{data[2]},{data[3]}, {nouvelle_fonction},{data[5]}";
-                                                Console.WriteLine("La fonction de l'employé a été mise à jour.");
-                                                break;
-
-                                            case 3:
-                                                if (double.TryParse(data[5].Trim(), out double currentSalary))
-                                                {
-                                                    double salaryIncrease =
-                                                        double.Parse(getString(
-                                                            "Saisissez le montant de l'augmentation de salaire: "));
-                                                    currentSalary += salaryIncrease;
-                                                    data[5] = currentSalary.ToString();
-
-                                                    lines[i] =
-                                                        $"Matricule_N{matricule}:{data[1]},{data[2]},{data[3]},{data[4]}, {currentSalary}";
-                                                    Console.WriteLine(
-                                                        $"Le salaire de l'employé a été augmenté à {data[5]}");
-                                                }
-                                                else
-                                                {
-                                                    Console.WriteLine("Erreur: Le salaire actuel n'est pas valide.");
-                                                }
-
-                                                break;
-
-                                            case 4:
-                                                Console.WriteLine("Aucune modification n'a été effectuée.");
-                                                break;
-
-                                            default:
-                                                Console.WriteLine("Choix non valide");
-                                                break;
-                                        }
-                                    }
-                                }
+                                default:
+                                    Console.WriteLine("Choix non valide");
+                                    break;
                             }
                         }
-                    }
+                    } 
+                    while (choice != 4);
 
-                    if (!found)
-                    {
-                        Console.WriteLine($"Aucun employé trouvé avec Matricule_N{matriculeToModify}.");
-                    }
-                    else
-                    {
-                        File.WriteAllLines(filePath, lines);
-                    }
+                    ModifyDataFile(emp);
+                }
+            }
 
-                    Console.WriteLine("\nVoulez-vous continuer à modifier d'autres employés? (Oui/Non)");
-                    string continueChoice = Console.ReadLine();
-                    continueModifying = continueChoice.Equals("Oui", StringComparison.OrdinalIgnoreCase);
-                }
-                else
-                {
-                    Console.WriteLine("Matricule_N non valide");
-                }
+            if (!found)
+            {
+                Console.WriteLine($"Aucun employé trouvé avec le nom {searchName}.");
             }
         }
 
         // TODO :  Exercice 1.1 (Liste des employés)
-        public void ReadAndDisplay()
+        public void displayList()
         {
-            FileStream f = File.OpenRead("C:/Projets/VS/2022/Exercises/Module_11/data.txt");
-            StreamReader sr = new StreamReader(f);
-            string ligne = "";
-
-            while ((ligne = sr.ReadLine()) != null)
+            if (employes != null)
             {
-                string[] data = ligne.Split(new[] { ':', ',' });
+                Console.WriteLine("Liste des employés:");
 
-                if (data.Length >= 5)
+                for (int i = 0; i < effectif; i++)
                 {
-                    Console.WriteLine($"{ligne}");
+                    Employe emp = employes[i];
+
+                    Console.WriteLine($"Matricule_N{emp.Numero}: {emp.getInfo()}");
                 }
             }
-
-            sr.Close();
-            f.Close();
+            else
+            {
+                Console.WriteLine("Aucun employé existé.");
+            }
         }
         #endregion
 
@@ -351,6 +370,7 @@ namespace Info
                 {
                     return this.employes[index];
                 }
+
                 return null;
             }
             set
@@ -366,39 +386,22 @@ namespace Info
             }
         }
 
-
         // TODO :  Exercice 1.4 (Calculer les salaires)
         public double ChargeSalariale
         {
             get
             {
-                double totalSalaire = 0;
-                effectif = 0;
+                double total = 0;
 
-                using (StreamReader reader = new StreamReader("C:/Projets/VS/2022/Exercises/Module_11/data.txt"))
+                for (int i = 0; i < this.effectif; i++)
                 {
-                    string line;
-
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        string[] parts = line.Split(new[] { ':', ',' });
-
-                        if (parts.Length >= 6)
-                        {
-                            if (double.TryParse(parts[5], out double salaire))
-                            {
-                                totalSalaire += salaire;
-                            }
-                        }
-
-                        effectif++;
-                    }
+                    total += this.employes[i].Salaire;
                 }
 
-                return totalSalaire;
+                return total;
             }
 
-            private set {}
+            private set { }
         }
 
         public void DisplayStatistics()
@@ -409,9 +412,9 @@ namespace Info
         }
         #endregion
 
-        #region Dispose 
+        #region Dispose
         private bool isDisposed = false;
-        
+
         protected virtual void Dispose(bool isDisposing)
         {
             if (!isDisposed)
@@ -422,7 +425,7 @@ namespace Info
                     {
                         foreach (Employe e in employes)
                         {
-                            nom = null;
+                            nomEnt = null;
                         }
                     }
                 }

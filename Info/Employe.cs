@@ -12,51 +12,36 @@ namespace Info
         #region Attributs
         private int numero;
         private double salaire;
-        public string fonction;
         #endregion
 
 
         #region Constructeurs
-        public Employe(string nom, string prenom, string adresse, int age, string fonction, double salaire) : base(nom, prenom, adresse, age)
+        public Employe(int numero, string nom, string prenom, string adresse, int age, string fonction, double salaire) : base(nom, prenom, adresse, age)
         {
-            this.fonction = fonction;
-            this.salaire = salaire;
+            this.numero = numero;
+            this.Fonction = fonction;
+            this.Salaire = salaire;
         }
 
-        public Employe(Personne p, string fonction, double salaire) : this(p.nom, p.prenom, p.adresse, p.age, fonction, salaire) { }
+        public Employe(Personne p, int numero, string fonction, double salaire) : this(numero, p.Nom, p.Prenom, p.Adresse, p.Age, fonction, salaire) { }
         #endregion
 
 
         #region Methodes
         public override string getInfo()
         {
-                return base.getInfo() + ", " + this.fonction + ", " + this.salaire;
+                return base.getInfo() + ", " + this.Fonction + ", " + this.Salaire;
         }
 
         public void augmentation(double montant)
         {
-            this.salaire += montant;
-        }
-
-        public void affectation(string nouvelle_fonction)
-        {
-            this.fonction = nouvelle_fonction;
+            this.Salaire += montant;
         }
 
         public void affectation(string nouvelle_fonction, Action<String> methode)
         {
-            methode(this.nom + " " + this.prenom + ", " + this.fonction + ": devient " + nouvelle_fonction);
-            this.fonction = nouvelle_fonction;
-        }
-
-        public int setNumero(int matricule_N)
-        {
-            return this.numero += matricule_N;
-        }
-
-        public int getNumero()
-        {
-            return numero;
+            methode(this.Nom + " " + this.Prenom + "," + this.Fonction + ": devient " + nouvelle_fonction);
+            this.Fonction = nouvelle_fonction;
         }
         #endregion
 
@@ -64,8 +49,22 @@ namespace Info
         public double Salaire
         {
             get { return salaire; }
-            set { salaire = value; }
+            private set
+            {
+                if (value <= 0)
+                {
+                    throw new Exception("le salaire ne peut pas etre null ou negative");
+                }
+                salaire = value;
+            }
         }
+
+        public int Numero
+        {
+            get { return numero; }
+        }
+
+        public string Fonction { get; private set; }
         #endregion
 
         #region Dispose 
@@ -77,7 +76,7 @@ namespace Info
             {
                 if (isDisposing)
                 {
-                    fonction = null;
+                    Fonction = null;
                 }
 
                 isDisposed = true;
