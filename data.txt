@@ -1,6 +1,7 @@
 1: SALIM Sarah, Nice, 29, Ing, 2200
 2: GOBES Sandra, Bruxelles, 35, RH, 3000
 3: SALAH Riad, Alex, 25, Guide, 2000
-4: MALIK Andrea, Strasbourg, 41, Lead tech, 5000
 5: SALAH Riad, Geneva, 28, Vendeur, 2300
-6: BADR Ibrahim, Lyon, 36, Apprenti, 1300
+6: BADR Ibrahim, Lyon, 36, Dev, 1700
+7: THOMAS Sandra, Cannes, 28, Resto, 2100
+8: PAUL Asia, Prague, 24, Designer, 1900

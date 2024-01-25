@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -14,11 +15,13 @@ namespace Info
     public class Entreprise : IDisposable
     {
         #region Attributs
-        public int effectif;
         public string nomEnt;
-        private Employe[] employes;
+
+        // TODO : Exercice 1.5.1 (Utilisation d’une collection)
+        private ArrayList employes;
+        
         public event Action<Object, EntEventArgs> InfoEffectif = null;
-        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_11/Ex_2/data.txt";
+        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_12/Ex_1/data.txt";
         #endregion
 
 
@@ -26,11 +29,12 @@ namespace Info
         public Entreprise(string nomEnt)
         {
             this.nomEnt = nomEnt;
-            employes = new Employe [100];
-            this.effectif = 0;
+
+            // TODO : Exercice 1.5.2 (Utilisation d’une collection)
+            employes = new ArrayList(100);
         }
 
-        public Entreprise() : this("Conduent")
+        public Entreprise() : this("Hema")
         {
         }
         #endregion
@@ -90,26 +94,9 @@ namespace Info
 
         public void embauche(Employe emp)
         {
-            if (this.effectif < employes.Length)
-            {
-                employes[this.effectif] = emp;
-                this.effectif++;
-            }
-            else
-            {
-                throw new Exception("Le nombre maximal d'employés est atteint. Impossible d'embaucher plus d'employés.");
-            }
+            // TODO : Exercice 1.5.3 (Utilisation d’une collection)
 
-            // TODO : Exercice 2.1 (Création d’un événement)
-            int nbPosteRestant = employes.Length - this.effectif;
-            if (InfoEffectif != null)
-            {
-                EntEventArgs eventArgs = new EntEventArgs(nbPosteRestant);
-                InfoEffectif(this, eventArgs);
-            }
-
-            // TODO : Exercice 2.2 (Gestion de l’événement)
-            //InfoEffectif += new Action<Object, EntEventArgs>((o, e) => Console.WriteLine(e.posteRestant));
+            employes.Add(emp);
         }
 
         public void writeDataFile(Employe emp)
@@ -126,11 +113,14 @@ namespace Info
         {
             int newNumero = 0;
 
-            for (int i = 0; i < employes.Length; i++)
+            for (int i = 0; i < employes.Count; i++)
             {
-                if (employes[i] != null && employes[i].Numero > newNumero)
+                if (employes[i] != null && i < employes.Count)
                 {
-                    newNumero = employes[i].Numero;
+                    if (((Employe)employes[i]).Numero > newNumero)
+                    {
+                        newNumero = ((Employe)employes[i]).Numero;
+                    }
                 }
             }
 
@@ -145,6 +135,18 @@ namespace Info
             Employe emp = new Employe(newNumero + 1, nom, prenom, adresse, age, fonction, salaire);
             embauche(emp);
             Console.WriteLine($"\nNouvel employé embauché, Matricule_N{emp.Numero}: {emp.Nom} {emp.Prenom}");
+
+            // TODO : Exercice 2.1 (Création d’un événement)
+            int nbPosteRestant = employes.Capacity - employes.Count;
+            if (InfoEffectif != null)
+            {
+                EntEventArgs eventArgs = new EntEventArgs(nbPosteRestant);
+                InfoEffectif(this, eventArgs);
+            }
+
+            // TODO : Exercice 2.2 (Gestion de l’événement)
+            InfoEffectif += new Action<Object, EntEventArgs>((o, e) => Console.WriteLine(e.posteRestant));
+
             writeDataFile(emp);
         }
 
@@ -155,14 +157,14 @@ namespace Info
 
             bool found = false;
 
-            for (int i = 0; i < effectif; i++)
+            for (int i = 0; i < employes.Count; i++)
             {
-                Employe emp = employes[i];
-
-                if (emp != null && emp.Nom.ToLower() == searchName)
+                if (employes[i] is Employe && ((Employe)employes[i]).Nom.ToLower() == searchName)
                 {
+                    Employe emp = (Employe)employes[i];
                     Console.WriteLine($"Employé trouvé, Matricule_N{emp.Numero}: {emp.getInfo()}");
                     found = true;
+                    break;
                 }
             }
 
@@ -210,9 +212,9 @@ namespace Info
             int indexToDelete = -1;
 
             // Find the index of the employee with the specified matricule
-            for (int i = 0; i < effectif; i++)
+            for (int i = 0; i < employes.Count; i++)
             {
-                if (employes[i] != null && employes[i].Numero == matricule)
+                if (employes[i] is Employe && ((Employe)employes[i]).Numero == matricule)
                 {
                     indexToDelete = i;
                     break; // Found the employee, exit the loop
@@ -222,16 +224,7 @@ namespace Info
             if (indexToDelete >= 0)
             {
                 // Shift the elements in the array to remove the employee
-                for (int i = indexToDelete; i < effectif - 1; i++)
-                {
-                    employes[i] = employes[i + 1];
-                }
-
-                // Set the last element to null to clear the reference
-                employes[effectif - 1] = null;
-
-                // Decrease the employee count
-                effectif--;
+                employes.RemoveAt(indexToDelete);
 
                 // Call the method to delete data from the file
                 deleteDataFile(matricule, new List<Employe>());
@@ -277,11 +270,9 @@ namespace Info
 
             bool found = false;
 
-            for (int i = 0; i < effectif; i++)
+            for (int i = 0; i < employes.Count; i++)
             {
-                Employe emp = employes[i];
-
-                if (emp != null && emp.Nom.ToLower() == searchName)
+                if (employes[i] is Employe && ((Employe)employes[i]).Nom.ToLower() == searchName)
                 {
                     found = true;
 
@@ -303,18 +294,18 @@ namespace Info
                             {
                                 case 1:
                                     string newAddress = getString("\nSaisissez la nouvelle adresse: ");
-                                    emp.Adresse = newAddress;
+                                    ((Employe)employes[i]).Adresse = newAddress;
                                     Console.WriteLine($"L'address de l'employe a été changé.\n");
                                     break;
 
                                 case 2:
                                     string nouvelle_fonction = getString("Faites l'affectation: ");
-                                    emp.affectation(nouvelle_fonction,x => Console.WriteLine(x.ToUpper()));
+                                    ((Employe)employes[i]).affectation(nouvelle_fonction,x => Console.WriteLine(x.ToUpper()));
                                     break;
 
                                 case 3:
                                     double salaryIncrease = double.Parse(getString("Saisissez le montant de l'augmentation: "));
-                                    emp.augmentation(salaryIncrease);
+                                    ((Employe)employes[i]).augmentation(salaryIncrease);
                                     Console.WriteLine($"Le salaire de l'employe a été augmenté.\n");
                                     break;
 
@@ -330,7 +321,7 @@ namespace Info
                     } 
                     while (choice != 4);
 
-                    ModifyDataFile(emp);
+                    ModifyDataFile(((Employe)employes[i]));
                 }
             }
 
@@ -347,11 +338,13 @@ namespace Info
             {
                 Console.WriteLine("Liste des employés:");
 
-                for (int i = 0; i < effectif; i++)
+                foreach (Employe e in employes)
                 {
-                    Employe emp = employes[i];
-
-                    Console.WriteLine($"Matricule_N{emp.Numero}: {emp.getInfo()}");
+                    if (e is Employe)
+                    {
+                        Employe emp = (Employe)e;
+                        Console.WriteLine($"Matricule_N{emp.Numero}: {emp.getInfo()}");
+                    }
                 }
             }
             else
@@ -359,25 +352,36 @@ namespace Info
                 Console.WriteLine("Aucun employé existé.");
             }
         }
+
+        public void DisplayStatistics()
+        {
+            Console.WriteLine($"Nombre d'employés : {employes.Count}");
+            Console.WriteLine($"Charge salariale : {ChargeSalariale}");
+            Console.WriteLine($"Salaire moyen : {(ChargeSalariale / employes.Count)}");
+        }
         #endregion
 
         #region Propriétés
+        public int Effectif
+        {
+            get { return employes.Count; }
+        }
         public Employe this[int index]
         {
             get
             {
-                if (index >= 0 && index <= this.effectif)
+                if (index >= 0 && index <= employes.Capacity)
                 {
-                    return this.employes[index];
+                    return (Employe)employes[index];
                 }
 
                 return null;
             }
             set
             {
-                if (index >= 0 && index <= this.effectif)
+                if (index >= 0 && index <= employes.Capacity)
                 {
-                    this.employes[index] = value;
+                    employes[index] = value;
                 }
                 else
                 {
@@ -393,22 +397,19 @@ namespace Info
             {
                 double total = 0;
 
-                for (int i = 0; i < this.effectif; i++)
+                foreach (object obj in employes)
                 {
-                    total += this.employes[i].Salaire;
+                    if (obj is Employe)
+                    {
+                        Employe emp = (Employe)obj;
+                        total += emp.Salaire;
+                    }
                 }
 
                 return total;
             }
 
             private set { }
-        }
-
-        public void DisplayStatistics()
-        {
-            Console.WriteLine($"Charge salariale : {ChargeSalariale}");
-            Console.WriteLine($"Nombre d'employés : {effectif}");
-            Console.WriteLine($"Salaire moyen : {(ChargeSalariale / effectif)}");
         }
         #endregion
 

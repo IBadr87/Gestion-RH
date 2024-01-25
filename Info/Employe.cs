@@ -45,6 +45,7 @@ namespace Info
         }
         #endregion
 
+
         #region Propriétés
         public double Salaire
         {
