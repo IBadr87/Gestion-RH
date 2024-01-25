@@ -1,5 +1,7 @@
-/Info/bin/
-/Info/obj/
-/JeuPoM/
-/GestionRH/
-/Info/Info.csproj
+*/bin/
+*/obj/
+*/*/vs
+/*/.vs/
+/*/*/bin/
+/*/*/obj/
+/*/*/Visual Studio 2022/
