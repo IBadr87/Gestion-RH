@@ -18,10 +18,10 @@ namespace Info
         public string nomEnt;
 
         // TODO : Exercice 1.5.1 (Utilisation d’une collection)
-        private ArrayList employes;
+        private List<Employe> employes;
         
         public event Action<Object, EntEventArgs> InfoEffectif = null;
-        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_12/Ex_1/data.txt";
+        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_12/Ex_2/data.txt";
         #endregion
 
 
@@ -31,7 +31,7 @@ namespace Info
             this.nomEnt = nomEnt;
 
             // TODO : Exercice 1.5.2 (Utilisation d’une collection)
-            employes = new ArrayList(100);
+            employes = new List<Employe>();
         }
 
         public Entreprise() : this("Hema")
@@ -94,8 +94,8 @@ namespace Info
 
         public void embauche(Employe emp)
         {
-            // TODO : Exercice 1.5.3 (Utilisation d’une collection)
 
+            // TODO: Exercice 1.5.3 (Utilisation d’une collection)
             employes.Add(emp);
         }
 
@@ -135,17 +135,6 @@ namespace Info
             Employe emp = new Employe(newNumero + 1, nom, prenom, adresse, age, fonction, salaire);
             embauche(emp);
             Console.WriteLine($"\nNouvel employé embauché, Matricule_N{emp.Numero}: {emp.Nom} {emp.Prenom}");
-
-            // TODO : Exercice 2.1 (Création d’un événement)
-            int nbPosteRestant = employes.Capacity - employes.Count;
-            if (InfoEffectif != null)
-            {
-                EntEventArgs eventArgs = new EntEventArgs(nbPosteRestant);
-                InfoEffectif(this, eventArgs);
-            }
-
-            // TODO : Exercice 2.2 (Gestion de l’événement)
-            InfoEffectif += new Action<Object, EntEventArgs>((o, e) => Console.WriteLine(e.posteRestant));
 
             writeDataFile(emp);
         }
@@ -397,11 +386,11 @@ namespace Info
             {
                 double total = 0;
 
-                foreach (object obj in employes)
+                foreach (Employe e in employes)
                 {
-                    if (obj is Employe)
+                    if (e is Employe)
                     {
-                        Employe emp = (Employe)obj;
+                        Employe emp = (Employe)e;
                         total += emp.Salaire;
                     }
                 }

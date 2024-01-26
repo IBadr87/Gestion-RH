@@ -5,3 +5,5 @@
 6: BADR Ibrahim, Lyon, 36, Dev, 1700
 7: THOMAS Sandra, Cannes, 28, Resto, 2100
 8: PAUL Asia, Prague, 24, Designer, 1900
+9: RIAD Ramy, New york, 36, Acteur, 5000
+10: HONSY Tamer, Alex, 42, Chanteur, 9000
