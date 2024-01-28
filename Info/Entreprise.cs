@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Info
 {
-    public class Entreprise : IDisposable
+    public class Entreprise : IDisposable, IEnumerable<Employe>
     {
         #region Attributs
         public string nomEnt;
@@ -21,7 +21,7 @@ namespace Info
         private List<Employe> employes;
         
         public event Action<Object, EntEventArgs> InfoEffectif = null;
-        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_12/Ex_2/data.txt";
+        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_13/data.txt";
         #endregion
 
 
@@ -327,13 +327,9 @@ namespace Info
             {
                 Console.WriteLine("Liste des employés:");
 
-                foreach (Employe e in employes)
+                foreach (Employe e in employes)  // Utilisation de l'interface IEnumerable
                 {
-                    if (e is Employe)
-                    {
-                        Employe emp = (Employe)e;
-                        Console.WriteLine($"Matricule_N{emp.Numero}: {emp.getInfo()}");
-                    }
+                    Console.WriteLine($"Matricule_N{e.Numero}: {e.getInfo()}");
                 }
             }
             else
@@ -423,6 +419,7 @@ namespace Info
                 isDisposed = true;
             }
         }
+        #endregion
 
         public void Dispose()
         {
@@ -430,6 +427,20 @@ namespace Info
             GC.SuppressFinalize(this);
         }
 
+
+        #region Enumerable
+        public IEnumerator<Employe> GetEnumerator()
+        {
+            return employes.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return employes.GetEnumerator();
+        }
+        #endregion
+
+        #region Destructor
         ~Entreprise()
         {
             Dispose(false);
