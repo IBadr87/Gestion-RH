@@ -43,7 +43,7 @@ namespace Info
         {
             if (age != 0 && !Adresse.Equals(""))
             {
-                return this.Nom + " " + this.Prenom + ", habite a " + this.Adresse + ", " + this.Age + " ans";
+                return this.Nom + " " + this.Prenom + ", habite a " + this.Adresse + ", " + this.Age + " ans, ";
             }
             else
             {

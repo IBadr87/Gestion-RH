@@ -7,3 +7,5 @@
 8: PAUL Asia, Prague, 24, Designer, 1900
 9: RIAD Ramy, New york, 36, Acteur, 5000
 10: HONSY Tamer, Alex, 42, Chanteur, 9000
+11: BADR Yasser, Munich, 39, chef de projet, 4500
+12: MALK Ramy, Florida, 45, Dev, 7000

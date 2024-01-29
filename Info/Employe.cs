@@ -30,7 +30,7 @@ namespace Info
         #region Methodes
         public override string getInfo()
         {
-                return base.getInfo() + ", " + this.Fonction + ", " + this.Salaire;
+                return base.getInfo() + this.Fonction + ", " + this.Salaire;
         }
 
         public void augmentation(double montant)

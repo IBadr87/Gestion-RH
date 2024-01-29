@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,7 +22,7 @@ namespace Info
         private List<Employe> employes;
         
         public event Action<Object, EntEventArgs> InfoEffectif = null;
-        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_13/data.txt";
+        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_14/data.txt";
         #endregion
 
 
@@ -72,7 +73,10 @@ namespace Info
 
                 while ((ligne = sr.ReadLine()) != null)
                 {
-                    string[] data = ligne.Split(new[] { ':', ',' });
+                    string[] data = (from l in ligne.Split(new[] { ':', ',' })
+                        where !string.IsNullOrEmpty(l) 
+                        select l.Trim()).ToArray();
+                                              
 
                     if (data.Length >= 5)
                     {
@@ -138,7 +142,7 @@ namespace Info
 
             writeDataFile(emp);
         }
-
+/*
         // TODO : Exercice 1.3 (Récupération d’un employé existant)
         public void EmployeExiste()
         {
@@ -161,6 +165,73 @@ namespace Info
             {
                 Console.WriteLine($"Aucun employé trouvé avec le nom '{searchName}'.");
             }
+        }
+*/
+        // TODO : Exercice 1.6 (Recherche d’employé par nom)
+        public void searchEmpNom()
+        {
+            string nomRecherche = getString("Veuillez saisir le nom à rechercher: ");
+
+            // Appeler la méthode rechercheParNom
+            List<Employe> employesTrouves = rechercheParNom (nomRecherche);
+
+            // Afficher les informations des employés correspondants
+            if (employesTrouves.Count > 0)
+            {
+                Console.WriteLine($"Employés trouvés pour le nom '{nomRecherche}':");
+
+                foreach (Employe emp in employesTrouves)
+                {
+                    Console.WriteLine($"Matricule_N{emp.Numero}: {emp.getInfo()}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Aucun employé trouvé avec le nom '{nomRecherche}'.");
+            }
+        }
+
+        public List<Employe> rechercheParNom (string nom)
+        {
+            var nomSpe = from emp in employes
+                                            where emp.Nom.ToUpper().Contains(nom.ToUpper()) // recherche partial
+                                            select emp;
+
+            return nomSpe.ToList();
+        }
+
+        // TODO : Exercice 1.7 (Recherche d’employé par fonction)
+        public void searchEmpFonc()
+        {
+            string foncRecherche = getString("Veuillez saisir la fonction à rechercher: ");
+
+            // Appeler la méthode rechercheParNom
+            List<Employe> employesTrouves = rechercheParFonction (foncRecherche);
+
+            // Afficher les informations des employés correspondants
+            if (employesTrouves.Count > 0)
+            {
+                Console.WriteLine($"Employés trouvés pour la fonction '{foncRecherche}':");
+
+                foreach (Employe emp in employesTrouves)
+                {
+                    Console.WriteLine($"Matricule_N{emp.Numero}: {emp.getInfo()}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Aucun employé trouvé avec la fonction '{foncRecherche}'.");
+            }
+        }
+
+        public List<Employe> rechercheParFonction(string fonction)
+        {
+            var foncSpe = from emp in employes
+                              //where emp.Fonction.ToUpper().Contains(fonction.ToUpper()) recherche partial
+                          where emp.Fonction.ToUpper() == fonction.ToUpper() // recherche exacte
+                          select emp;
+
+            return foncSpe.ToList();
         }
 
         private void deleteDataFile(int matricule, List<Employe> allEmployees)
@@ -223,7 +294,6 @@ namespace Info
                 Console.WriteLine($"Aucun employe trouve avec le Matricule_N{matricule}.");
             }
         }
-
 
         public void ModifyDataFile(Employe emp)
         {
@@ -341,9 +411,46 @@ namespace Info
         public void DisplayStatistics()
         {
             Console.WriteLine($"Nombre d'employés : {employes.Count}");
-            Console.WriteLine($"Charge salariale : {ChargeSalariale}");
+            Console.WriteLine($"Total salaire : {ChargeSalariale}");
             Console.WriteLine($"Salaire moyen : {(ChargeSalariale / employes.Count)}");
+
+            // TODO : Exercice 1.8 (Recherche de la charge salariale pour une fonction recherchée)
+            // Call chargeSalarialeParFonction to get statistics for a specific function
+            string fonctionToCheck = getString("\nVeuillez saisir la fonction à rechercher:");
+            double chargeSalarialeForFunction;
+
+            int employeeCountForFunction = chargeSalarialeParFonction(fonctionToCheck, out chargeSalarialeForFunction);
+
+            if (employeeCountForFunction > 0)
+            {
+                Console.WriteLine($"\nNombre des employes avec la fonction '{fonctionToCheck}': {employeeCountForFunction}");
+                Console.WriteLine($"Total salaire pour la fonction '{fonctionToCheck}': {chargeSalarialeForFunction}");
+                Console.WriteLine($"Salaire moyen pour la fonction '{fonctionToCheck}': {chargeSalarialeForFunction / employeeCountForFunction}");
+            }
+            else
+            {
+                Console.WriteLine($"Aucun employe trouve avec cette fonction {fonctionToCheck}");
+            }
+
         }
+
+        public int chargeSalarialeParFonction (string fonction, out double chargeSalariale)
+        {
+            // Use LINQ to filter employees by the specified function
+            var employeesWithFunction = from emp in employes
+                                                            where emp.Fonction.ToUpper() == fonction.ToUpper()
+                                                            select emp;
+
+            // Count the number of employees with the specified function
+            int employeeCount = employeesWithFunction.Count();
+
+            // Calculate the total salary for employees with the specified function
+            chargeSalariale = employeesWithFunction.Sum(emp => emp.Salaire);
+
+            // Return the number of employees
+            return employeeCount;
+        }
+
         #endregion
 
         #region Propriétés
