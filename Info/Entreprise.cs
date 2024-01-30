@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Info
 {
@@ -22,7 +15,7 @@ namespace Info
         private List<Employe> employes;
         
         public event Action<Object, EntEventArgs> InfoEffectif = null;
-        private static string filePath = "C:/Projets/VS/2022/Exercises/Module_14/data.txt";
+        private static string filePath = "../../../../../data.txt";
         #endregion
 
 
