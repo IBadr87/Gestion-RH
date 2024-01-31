@@ -1,8 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Microsoft.Office.Interop.Excel;
 
 namespace Info
 {
@@ -12,10 +20,12 @@ namespace Info
         public string nomEnt;
 
         // TODO : Exercice 1.5.1 (Utilisation d’une collection)
-        private List<Employe> employes;
-        
+        protected List<Employe> employes;
+
+        private static string filePath = "C:/Projets/VS/2022/Exercises_Jeu_Gestion_RH/Module_15/DataBase.txt";
+        private static string directoryPath = @"C:\Projets\VS\2022\Exercises_Jeu_Gestion_RH\Module_15";
+
         public event Action<Object, EntEventArgs> InfoEffectif = null;
-        private static string filePath = "../../../../../data.txt";
         #endregion
 
 
@@ -29,12 +39,44 @@ namespace Info
         }
 
         public Entreprise() : this("Hema")
-        {
+        { 
         }
         #endregion
 
 
         #region Methodes
+        public void LoadData()
+        {
+            if (File.Exists(filePath))
+            {
+                StreamReader sr = new StreamReader(filePath);
+                string ligne = "";
+
+                while ((ligne = sr.ReadLine()) != null)
+                {
+                    string[] data = (from l in ligne.Split(new[] { ':', ',' })
+                        where !string.IsNullOrEmpty(l)
+                        select l.Trim()).ToArray();
+
+
+                    if (data.Length >= 5)
+                    {
+                        string[] nameParts = data[1].Trim().Split(' ');
+                        string nom = nameParts[0];
+                        string prenom = nameParts[1];
+
+                        embauche(new Employe(int.Parse(data[0]), nom, prenom, data[2], int.Parse(data[3]), data[4], double.Parse(data[5])));
+                    }
+                }
+
+                sr.Close();
+            }
+            else
+            {
+                Console.WriteLine("Le fichier de données n'existe pas.");
+            }
+        }
+
         public static string getString(string message)
         {
             Console.WriteLine(message);
@@ -57,46 +99,13 @@ namespace Info
             }
         }
 
-        public void LoadData()
-        {
-            if (File.Exists(filePath))
-            {
-                StreamReader sr = new StreamReader(filePath);
-                string ligne = "";
-
-                while ((ligne = sr.ReadLine()) != null)
-                {
-                    string[] data = (from l in ligne.Split(new[] { ':', ',' })
-                        where !string.IsNullOrEmpty(l) 
-                        select l.Trim()).ToArray();
-                                              
-
-                    if (data.Length >= 5)
-                    {
-                        string[] nameParts = data[1].Trim().Split(' ');
-                        string nom = nameParts[0];
-                        string prenom = nameParts[1];
-
-                        embauche(new Employe(int.Parse(data[0]), nom, prenom, data[2], int.Parse(data[3]), data[4], double.Parse(data[5])));
-                    }
-                }
-
-                sr.Close();
-            }
-            else
-            {
-                Console.WriteLine("Le fichier de données n'existe pas.");
-            }
-        }
-
         public void embauche(Employe emp)
         {
 
             // TODO: Exercice 1.5.3 (Utilisation d’une collection)
             employes.Add(emp);
         }
-
-        public void writeDataFile(Employe emp)
+        public static void writeDataFile(Employe emp)
         {
             using (StreamWriter writer = new StreamWriter(filePath, true))
             {
@@ -135,31 +144,7 @@ namespace Info
 
             writeDataFile(emp);
         }
-/*
-        // TODO : Exercice 1.3 (Récupération d’un employé existant)
-        public void EmployeExiste()
-        {
-            string searchName = getString("Veuillez saisir le nom de l'employé à rechercher: ").ToLower();
 
-            bool found = false;
-
-            for (int i = 0; i < employes.Count; i++)
-            {
-                if (employes[i] is Employe && ((Employe)employes[i]).Nom.ToLower() == searchName)
-                {
-                    Employe emp = (Employe)employes[i];
-                    Console.WriteLine($"Employé trouvé, Matricule_N{emp.Numero}: {emp.getInfo()}");
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                Console.WriteLine($"Aucun employé trouvé avec le nom '{searchName}'.");
-            }
-        }
-*/
         // TODO : Exercice 1.6 (Recherche d’employé par nom)
         public void searchEmpNom()
         {
@@ -227,7 +212,7 @@ namespace Info
             return foncSpe.ToList();
         }
 
-        private void deleteDataFile(int matricule, List<Employe> allEmployees)
+        public void deleteDataFile(int matricule, List<Employe> allEmployees)
         {
             // Read the existing file contents into a list of lines
             List<string> lines = File.ReadAllLines(filePath).ToList();
@@ -256,7 +241,6 @@ namespace Info
 
             Console.WriteLine($"Les données de l'employé matricule_N{matricule} ont été supprimées.");
         }
-
 
         public void DeleteEmployee(int matricule)
         {
@@ -288,7 +272,7 @@ namespace Info
             }
         }
 
-        public void ModifyDataFile(Employe emp)
+        public static void ModifyDataFile(Employe emp)
         {
             // Read the existing file contents into a list of lines
             List<string> lines = File.ReadAllLines(filePath).ToList();
@@ -444,6 +428,48 @@ namespace Info
             return employeeCount;
         }
 
+        // TODO : Exercice 1.8 (Utilisation de composants COM )
+        public void export(string excelFileName)
+        {
+            Application exApp = new Application();
+            Workbook exWkb = exApp.Workbooks.Add();
+            Worksheet exWsh = exWkb.Worksheets[1];
+
+            exWsh.Range["A1"].Value = "Matricule_N";
+            exWsh.Range["B1"].Value = "Nom";
+            exWsh.Range["C1"].Value = "Prénom";
+            exWsh.Range["D1"].Value = "Adresse";
+            exWsh.Range["E1"].Value = "Age";
+            exWsh.Range["F1"].Value = "Fonction";
+            exWsh.Range["G1"].Value = "Salaire";
+            exWsh.Range["A1:G1"].Font.Bold = true;
+
+            int ligne = 2;
+            foreach (Employe emp in employes)
+            {
+                exWsh.Cells[ligne, 1].Value = emp.Numero;
+                exWsh.Cells[ligne, 2].Value = emp.Nom;
+                exWsh.Cells[ligne, 3].Value = emp.Prenom;
+                exWsh.Cells[ligne, 4].Value = emp.Adresse;
+                exWsh.Cells[ligne, 5].Value = emp.Age;
+                exWsh.Cells[ligne, 6].Value = emp.Fonction;
+                exWsh.Cells[ligne, 7].Value = emp.Salaire;
+
+                ligne++;
+            }
+
+            exApp.DisplayAlerts = false;
+
+            excelFileName = getString("Veuillez saisir le nom du fichier Excel:");
+            string file = Path.Combine(directoryPath, excelFileName);
+            exWkb.SaveAs(file, XlFileFormat.xlWorkbookDefault);
+
+            exWkb.Close();
+            exApp.Quit();
+            exWsh = null;
+            exWkb = null;
+            exApp = null;
+        }
         #endregion
 
         #region Propriétés

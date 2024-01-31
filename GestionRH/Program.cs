@@ -1,4 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Info;
 
 namespace GestionRH
@@ -68,6 +75,8 @@ namespace GestionRH
 
                     case "8":
                         Console.WriteLine("\nOption 8: Quitter\n");
+                        string excelName = "";
+                        Ent.export(excelName);
                         exit = true;
                         break;
 
